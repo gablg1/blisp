@@ -92,6 +92,10 @@ multi_args = """(
     ) (sum 3 4)
 )"""
 
+# Define our own polymorphic list type
+# false :: List (nil)
+# (bool) -> (any | List) :: List (cons)
+# cons :: (any, List) -> (bool) -> (elem | List)
 list_fun = """(
     let cons (lmb a b
         (lmb x (if x a b))
