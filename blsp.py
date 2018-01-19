@@ -64,6 +64,11 @@ def eval(ast, env = {}):
     else:
         return eval(ast[0], env)(*[eval(expr, env) for expr in ast[1:]])
 
+def repl(prompt = 'blsp> '):
+    while True:
+        input_string = input(prompt)
+        if not input_string.isspace() and input_string != '':
+            print(eval(parse(input_string)))
 
 code = '(+ 5 (* 2 4))'
 code2 = "(let x {} (* 2 x))".format(code)
@@ -105,4 +110,4 @@ list_fun = """(
     (hd (tl (cons 3 (cons 4 false))))
 )))"""
 
-print(eval(parse(list_fun)))
+repl()
