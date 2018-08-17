@@ -1,6 +1,6 @@
 # BLISP - Biel LISP
 
-A very simple LISP interpreter built in Python, implemented in < 50 lines of code.
+A very simple LISP interpreter built in multiple languages, implemented in < 50 lines of code.
 
 Usage:
 ```
