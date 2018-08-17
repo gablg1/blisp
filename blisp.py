@@ -64,7 +64,7 @@ def eval(ast, env = {}):
     else:
         return eval(ast[0], env)(*[eval(expr, env) for expr in ast[1:]])
 
-def repl(prompt = 'blsp> '):
+def repl(prompt = 'blisp> '):
     while True:
         input_string = input(prompt)
         if not input_string.isspace() and input_string != '':
