@@ -1,4 +1,4 @@
-# BLSP - Biel LISP
+# BLISP - Biel LISP
 
 A very simple LISP interpreter built in Python, implemented in < 50 lines of code.
 
