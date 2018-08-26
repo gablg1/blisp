@@ -53,6 +53,13 @@ defmodule BLISP do
         eval(definition, Map.put(env, x, fn -> get_result(definition, env, x) end))
     end
 
+    @binops %{
+        "+" => &+/2,
+        "-" => &-/2,
+        "*" => &*/2,
+        "==" => &==/2
+    }
+
     def eval(ast, env) do
         cond do
             is_number(ast) -> ast
@@ -60,31 +67,24 @@ defmodule BLISP do
             ast == "false" -> false
             is_binary(ast) -> env[ast].() # could be memoized
             is_list(ast) ->
-                case hd(ast) do
-                    "+" ->
-                        [_, x, y] = ast
-                        eval(x, env) + eval(y, env)
-                    "-" ->
-                        [_, x, y] = ast
-                        eval(x, env) - eval(y, env)
-                    "*" ->
-                        [_, x, y] = ast
-                        eval(x, env) * eval(y, env)
-                    "==" ->
-                        [_, x, y] = ast
-                        eval(x, env) == eval(y, env)
-                    "if" ->
-                        [_, cond, if_true, if_false] = ast
-                        if eval(cond, env) do eval(if_true, env) else eval(if_false, env) end
-                    "let" ->
-                        [_, x, definition, expression] = ast
-                        eval(expression, Map.put(env, x, fn -> get_result(definition, env, x) end))
-                    "lmb" ->
-                        [_, arg, body] = ast
-                        fn(x) -> eval(body, Map.put(env, arg, fn -> x end)) end
-                    _ ->
-                        [lambda, args] = ast
-                        eval(lambda, env).(eval(args, env))
+                if Map.has_key?(@binops, hd(ast)) do
+                    [_, x, y] = ast
+                    @binops[hd(ast)].(eval(x, env), eval(y, env))
+                else
+                    case hd(ast) do
+                        "if" ->
+                            [_, cond, if_true, if_false] = ast
+                            if eval(cond, env) do eval(if_true, env) else eval(if_false, env) end
+                        "let" ->
+                            [_, x, definition, expression] = ast
+                            eval(expression, Map.put(env, x, fn -> get_result(definition, env, x) end))
+                        "lmb" ->
+                            [_, arg, body] = ast
+                            fn(x) -> eval(body, Map.put(env, arg, fn -> x end)) end
+                        _ ->
+                            [lambda, args] = ast
+                            eval(lambda, env).(eval(args, env))
+                    end
                 end
             true -> raise "Wrong token type: #{ast}"
         end
