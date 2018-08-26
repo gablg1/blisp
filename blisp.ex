@@ -1,6 +1,11 @@
 defmodule BLISP do
     def tokenize(code) do
-        Enum.filter(String.split(String.replace(String.replace(code, "(", " ( "), ")", " ) "), " "), fn(x) -> x != "" end)
+        code
+        |> String.replace("(", " ( ")
+        |> String.replace(")", " ) ")
+        |> String.replace("\n", " ")
+        |> String.split()
+        |> Enum.filter(fn(x) -> x != "" end)
     end
 
     def leaf(token) do
@@ -36,11 +41,11 @@ defmodule BLISP do
         elem build_ast(tokenize(code)), 0
     end
 
-    def while(initial, cond, f) do
+    def while(initial, cond, body) do
         if not cond.(initial) do
             initial
         else
-            while(f.(initial), cond, f)
+            while(body.(initial), cond, body)
         end
     end
 
@@ -52,6 +57,25 @@ defmodule BLISP do
             is_binary(ast) -> env[ast]
             is_list(ast) ->
                 case hd(ast) do
+                    "+" ->
+                        [_, x, y] = ast
+                        eval(x, env) + eval(y, env)
+                    "-" ->
+                        [_, x, y] = ast
+                        eval(x, env) - eval(y, env)
+                    "*" ->
+                        [_, x, y] = ast
+                        eval(x, env) * eval(y, env)
+                    "==" ->
+                        [_, x, y] = ast
+                        eval(x, env) == eval(y, env)
+                    "if" ->
+                        [_, cond, if_true, if_false] = ast
+                        if eval(cond, env) do eval(if_true, env) else eval(if_false, env) end
+                    "let" ->
+                        [_, x, definition, expression] = ast
+                        get_result = fn() -> eval(definition, env) end
+                        eval(expression, Map.put(env, x, get_result.()))
                     "lmb" ->
                         [_, arg, body] = ast
                         fn(x) -> eval(body, Map.put(env, arg, x)) end
@@ -64,4 +88,7 @@ defmodule BLISP do
     end
 end
 
-IO.inspect BLISP.eval(BLISP.parse("((lmb x x) 3)"), %{})
+IO.inspect BLISP.eval(BLISP.parse("(let x (+ 3 4) ((lmb y (* y x)) 10))"), %{})
+IO.inspect BLISP.eval(BLISP.parse("(let factorial (lmb x    (if (== x 1) 1        (* x (factorial (- x 1)))
+))(factorial 10))"), %{})
+
