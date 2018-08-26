@@ -49,12 +49,16 @@ defmodule BLISP do
         end
     end
 
+    def get_result(definition, env, x) do
+        eval(definition, Map.put(env, x, fn -> get_result(definition, env, x) end))
+    end
+
     def eval(ast, env) do
         cond do
             is_number(ast) -> ast
             ast == "true" -> true
             ast == "false" -> false
-            is_binary(ast) -> env[ast]
+            is_binary(ast) -> env[ast].() # could be memoized
             is_list(ast) ->
                 case hd(ast) do
                     "+" ->
@@ -74,11 +78,10 @@ defmodule BLISP do
                         if eval(cond, env) do eval(if_true, env) else eval(if_false, env) end
                     "let" ->
                         [_, x, definition, expression] = ast
-                        get_result = fn() -> eval(definition, env) end
-                        eval(expression, Map.put(env, x, get_result.()))
+                        eval(expression, Map.put(env, x, fn -> get_result(definition, env, x) end))
                     "lmb" ->
                         [_, arg, body] = ast
-                        fn(x) -> eval(body, Map.put(env, arg, x)) end
+                        fn(x) -> eval(body, Map.put(env, arg, fn -> x end)) end
                     _ ->
                         [lambda, args] = ast
                         eval(lambda, env).(eval(args, env))
