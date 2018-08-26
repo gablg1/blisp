@@ -82,6 +82,7 @@ defmodule BLISP do
                     hd(ast) == "lmb" ->
                         [_, arg, body] = ast
                         fn(x) -> eval(body, Map.put(env, arg, fn -> x end)) end
+                    # Function call
                     true ->
                         [lambda, args] = ast
                         eval(lambda, env).(eval(args, env))
@@ -92,6 +93,6 @@ defmodule BLISP do
 end
 
 IO.inspect BLISP.eval(BLISP.parse("(let x (+ 3 4) ((lmb y (* y x)) 10))"), %{})
-IO.inspect BLISP.eval(BLISP.parse("(let factorial (lmb x    (if (== x 1) 1        (* x (factorial (- x 1)))
+IO.inspect BLISP.eval(BLISP.parse("(let factorial (lmb x (if (== x 1) 1 (* x (factorial (- x 1)))
 ))(factorial 10))"), %{})
 
